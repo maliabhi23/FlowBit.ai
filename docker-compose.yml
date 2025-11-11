@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: flowbit-postgres
+    environment:
+      POSTGRES_USER: flowbit
+      POSTGRES_PASSWORD: flowbit_password
+      POSTGRES_DB: flowbit_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowbit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: flowbit-api
+    environment:
+      DATABASE_URL: postgresql://flowbit:flowbit_password@postgres:5432/flowbit_db
+      PORT: 3001
+      NODE_ENV: production
+      VANNA_SERVICE_URL: http://vanna:8000
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app
+      - /app/node_modules
+    command: npm run dev
+
+  vanna:
+    build:
+      context: ./services/vanna
+      dockerfile: Dockerfile
+    container_name: flowbit-vanna
+    environment:
+      DATABASE_URL: postgresql://flowbit:flowbit_password@postgres:5432/flowbit_db
+      GROQ_API_KEY: ${GROQ_API_KEY:-your_groq_api_key_here}
+      VANNA_PORT: 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/vanna:/app
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: flowbit-web
+    environment:
+      NEXT_PUBLIC_API_BASE: http://localhost:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+
+volumes:
+  postgres_data:
+
+

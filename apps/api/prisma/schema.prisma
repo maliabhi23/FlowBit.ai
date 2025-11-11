@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  documentId   String   @unique
+  invoiceId    String?
+  invoiceDate  DateTime?
+  deliveryDate DateTime?
+  vendorName   String?
+  vendorAddress String?
+  vendorTaxId  String?
+  customerName String?
+  customerAddress String?
+  subTotal     Float?
+  totalTax     Float?
+  invoiceTotal Float?
+  currency     String?  @default("EUR")
+  status       String   @default("processed")
+  organizationId String?
+  departmentId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  lineItems    LineItem[]
+
+  @@index([invoiceDate])
+  @@index([vendorName])
+  @@index([invoiceTotal])
+  @@index([status])
+}
+
+model LineItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  srNo        Int?
+  description String?
+  quantity    Float?
+  unitPrice   Float?
+  totalPrice  Float?
+  category    String?  // Sachkonto or similar category field
+  createdAt   DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([category])
+}
+
+

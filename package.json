@@ -1,0 +1,26 @@
+{
+  "name": "flowbit-internship",
+  "version": "1.0.0",
+  "private": true,
+  "author": "Naresh Ashok Mali",
+  "license": "ISC",
+  "workspaces": [
+    "apps/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "turbo": "^1.11.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+
+
